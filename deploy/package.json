@@ -1,0 +1,20 @@
+{
+  "name": "deploy",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "node"
+  ],
+  "license": "ISC",
+  "author": "Ranjan",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  }
+}
