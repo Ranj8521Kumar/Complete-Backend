@@ -4,6 +4,8 @@ import dotenv from 'dotenv'; //in package.json under scripts include like this f
 
 import connectDB from './db/index.js';
 
+import { app } from './app.js'
+
 dotenv.config({
     path: './env'
 })
