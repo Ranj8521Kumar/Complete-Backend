@@ -1,7 +1,7 @@
 import {asyncHandler} from "../utils/asynchandler.js";
 import {ApiError} from "../utils/Apierror.js";
 import {User} from "../models/user.model.js";
-import {uploadOnCloudinary} from "../utils/cloudinary.js";
+import {uploadOnCloudinary, deletefromCloudinary} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiRespose.js";
 import jwt from "jsonwebtoken";
 import { runInNewContext } from "vm";
@@ -281,11 +281,19 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 
+
     if(!avatar.url){
         new ApiError(400, "Error while uploading avatar");
     }
 
-    const user = await User.findByIdAndUpdate(
+    if(!req.user?._id){
+        throw new ApiError(401, "User not authenticated");
+    }
+
+    const user = await User.findById(req.user._id);
+    const oldAvatar = user?.avatar;
+
+    const updatedUser = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
@@ -297,9 +305,17 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         }
     ).select("-password -refreshToken");
 
+    
+    //delete old avatar from clodinary
+    if(oldAvatar){
+        const response = await deletefromCloudinary(oldAvatar);
+    }else{
+        throw new ApiError(400, "Old avatar not found");
+    }
+
     res.
     status(200)
-    .json(new ApiResponse(200, user, "Avatar Updated Successfully"));
+    .json(new ApiResponse(200, updatedUser, "Avatar Updated Successfully"));
 });
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
@@ -315,17 +331,28 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         new ApiError(400, "Error while uploading coverImage");
     }
 
-    const user = await User.findByIdAndUpdate(
+    // get user and old coverImage
+    const user = await User.findById(req.user._id);
+    const oldCoverImage = user?.coverImage;
+
+    const updatedUser = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
-                avatar: coverImage.url
+                coverImage: coverImage.url
             }
         },
         {
             new: true
         }
     ).select("-password -refreshToken");
+
+    // delete old coverImage from clodinary
+    if(oldCoverImage){
+        const response = await deletefromCloudinary(oldCoverImage);
+    }else{
+        throw new ApiError(400, "Old coverImage not found");
+    }
 
     res.
     status(200)

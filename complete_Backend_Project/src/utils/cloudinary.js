@@ -26,4 +26,23 @@ const uploadOnCloudinary = async (localFilePath)=>{
     }
 }
 
-export {uploadOnCloudinary};
+const deletefromCloudinary = async (oldAvatar) => {
+    try {
+        if(!oldAvatar) return null;
+
+        //get the public id from the url
+        const publicId = oldAvatar.split('/').pop().split('.')[0];
+
+        //delete the file from clodinary
+        const response = await cloudinary.uploader.destroy(publicId, {
+            resource_type: "auto"
+        });
+    }catch (error) {
+        console.error("Error deleting file from Cloudinary:", error);
+        return null;
+    }
+
+    return response;
+}
+
+export {uploadOnCloudinary, deletefromCloudinary};
